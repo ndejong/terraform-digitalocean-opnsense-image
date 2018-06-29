@@ -256,6 +256,7 @@
       <enabled>enabled</enabled>
       <permitrootlogin>1</permitrootlogin>
     </ssh>
+
   </system>
 
   <interfaces>
@@ -270,6 +271,9 @@
       <ipaddr>public_ip4_addr</ipaddr>
       <subnet>public_ip4_subnet</subnet>
       <gateway>public4gw</gateway>
+      <ipaddrv6>public_ip6_addr</ipaddrv6>
+      <subnetv6>public_ip6_subnet</subnetv6>
+      <gatewayv6>public6gw</gatewayv6>
     </public>
     <private>
       <enable>1</enable>
@@ -279,7 +283,6 @@
       <spoofmac/>
       <ipaddr>private_ip4_addr</ipaddr>
       <subnet>private_ip4_subnet</subnet>
-      <gateway>public6gw</gateway>
     </private>
   </interfaces>
 
@@ -295,7 +298,6 @@
       <avg_delay_samples/>
       <avg_loss_samples/>
       <avg_loss_delay_samples/>
-      <monitor>public_ip4_gateway</monitor>
       <defaultgw>1</defaultgw>
       <disabled>1</disabled>
     </gateway_item>
@@ -310,7 +312,6 @@
       <avg_delay_samples/>
       <avg_loss_samples/>
       <avg_loss_delay_samples/>
-      <monitor>public_ip6_gateway</monitor>
       <defaultgw>1</defaultgw>
       <disabled>1</disabled>
     </gateway_item>
@@ -339,30 +340,69 @@
   </nat>
 
   <filter>
+
     <rule>
       <type>pass</type>
-      <ipprotocol>inet46</ipprotocol>
-      <descr><![CDATA[Allow all public traffic]]></descr>
-      <interface>public</interface>
-      <source>
-        <any/>
-      </source>
-      <destination>
-        <any/>
-      </destination>
-    </rule>
-    <rule>
-      <type>pass</type>
-      <ipprotocol>inet46</ipprotocol>
-      <descr><![CDATA[Allow all private traffic]]></descr>
       <interface>private</interface>
+      <ipprotocol>inet</ipprotocol>
+      <statetype>keep state</statetype>
+      <descr><![CDATA[Allow all IPv4 private network traffic]]></descr>
       <source>
-        <any/>
+        <network>private</network>
       </source>
       <destination>
-        <any/>
+        <any>1</any>
       </destination>
     </rule>
+
+    <rule>
+      <type>pass</type>
+      <interface>public</interface>
+      <ipprotocol>inet</ipprotocol>
+      <statetype>keep state</statetype>
+      <descr><![CDATA[Allow public ICMP ping to this firewall]]></descr>
+      <protocol>icmp</protocol>
+      <icmptype>echoreq</icmptype>
+      <source>
+        <any>1</any>
+      </source>
+      <destination>
+        <network>(self)</network>
+      </destination>
+    </rule>
+
+    <rule>
+      <type>pass</type>
+      <interface>public</interface>
+      <ipprotocol>inet46</ipprotocol>
+      <statetype>keep state</statetype>
+      <descr><![CDATA[CAUTION: Allow public remote access to this firewall via SSH]]></descr>
+      <protocol>tcp</protocol>
+      <source>
+        <any>1</any>
+      </source>
+      <destination>
+        <network>(self)</network>
+        <port>22</port>
+      </destination>
+    </rule>
+
+    <rule>
+      <type>pass</type>
+      <interface>public</interface>
+      <ipprotocol>inet46</ipprotocol>
+      <statetype>keep state</statetype>
+      <descr><![CDATA[CAUTION: Allow public remote access to this firewall via HTTPS]]></descr>
+      <protocol>tcp</protocol>
+      <source>
+        <any>1</any>
+      </source>
+      <destination>
+        <network>(self)</network>
+        <port>443</port>
+      </destination>
+    </rule>
+
   </filter>
 
   <rrd>

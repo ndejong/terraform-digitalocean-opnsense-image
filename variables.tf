@@ -24,7 +24,7 @@ variable "root_passwd" {
 
 variable "remove_root_sshkeys" {
   description = "Remove the root login ssh public key(s) after the droplet has completed - NB: the root bootstrap ssh private key remains in CLEARTEXT in the Terraform statefile and can easily be recovered, thus removing this key is strongly recommended."
-  default = 0
+  default = 1
 }
 
 variable "digitalocean_image" {

@@ -38,8 +38,8 @@ data "template_file" "opnsense-config-xml" {
   }
 }
 
-data "template_file" "digitaloceanopnsense-rc-sh" {
-  template = "${file("${path.module}/data/digitaloceanopnsense-rc.sh")}"
+data "template_file" "opnsensedigitalocean-sh" {
+  template = "${file("${path.module}/data/opnsensedigitalocean.sh")}"
 }
 
 data "template_file" "cloudinit-bootstrap-sh" {
@@ -48,7 +48,7 @@ data "template_file" "cloudinit-bootstrap-sh" {
     opnsense_release = "18.1"
     opnsense_bootstrap_patch_data = "${base64gzip(file("${path.module}/data/opnsense-bootstrap.patch"))}"
     opnsense_config_data = "${base64gzip(data.template_file.opnsense-config-xml.rendered)}"
-    digitaloceanopnsense_rc_data = "${base64gzip(data.template_file.digitaloceanopnsense-rc-sh.rendered)}"
+    opnsensedigitalocean_rc_data = "${base64gzip(data.template_file.opnsensedigitalocean-sh.rendered)}"
   }
 }
 
@@ -60,7 +60,7 @@ data "template_cloudinit_config" "droplet-userdata" {
   part {
     content_type = "text/x-shellscript"
     filename = "cloudinit-bootstrap.sh"
-    content = "#!/bin/csh\necho -n '${base64gzip(data.template_file.cloudinit-bootstrap-sh.rendered)}' | b64decode -r | gunzip | /bin/csh"
+    content = "#!/bin/sh\necho -n '${base64gzip(data.template_file.cloudinit-bootstrap-sh.rendered)}' | b64decode -r | gunzip | /bin/sh"
   }
 }
 
