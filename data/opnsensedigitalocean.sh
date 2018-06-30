@@ -133,7 +133,6 @@ opnsensedigitalocean_start()
         # Mount the Digital Ocean config_drive if not already
         if [ $(mount | grep '/dev/vtbd1' | wc -l | tr -d ' ') -lt 1 ]; then
             echo "OPNsense DigitalOcean: mount config_drive"
-            rm -Rf /var/lib/cloud
             mkdir -p /var/lib/cloud/seed/config_drive
             mount_cd9660  -o ro -v /dev/vtbd1 /var/lib/cloud/seed/config_drive || echo "OPNsense DigitalOcean: failed to mount config drive"
         else
@@ -145,9 +144,19 @@ opnsensedigitalocean_start()
         # droplet user_data
         user_data=$(jq -r -M '.user_data' $meta)
 
-        if [ ! -z $user_data ]; then
+        if [ ! -z "$user_data" ] && [ ! -f "/var/lib/cloud/instance/user_data.sh" ]; then
             echo "OPNsense DigitalOcean: sending b64decode+gunzip(user_data) to /bin/sh"
-            echo -n "$user_data" | b64decode -r | gunzip | /bin/sh
+            mkdir -p /var/lib/cloud/instance
+            echo -n "$user_data" > /var/lib/cloud/instance/user_data
+            cat /var/lib/cloud/instance/user_data | b64decode -r | gunzip > /var/lib/cloud/instance/user_data.sh
+            if [ $(cat /var/lib/cloud/instance/user_data | wc -c | tr -d ' ') -gt 0 ]; then
+                chmod 700 /var/lib/cloud/instance/user_data.sh
+                /bin/sh /var/lib/cloud/instance/user_data.sh
+            else
+                rm -f /var/lib/cloud/instance/user_data.sh
+                echo "OPNsense DigitalOcean: ERROR unable to decode b64decode+gunzip(user_data) to pass to /bin/sh"
+            fi
+
         fi
 
         # =====================================================================
