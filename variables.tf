@@ -6,7 +6,15 @@
 # ===
 
 variable "digitalocean_region" {
-  description = "The digitalocean region-slug to start this digitalocean-droplet within (nyc1, sgp1, lon1, nyc3, ams3, fra1, tor1, sfo2, blr1)"
+  description = "The DigitalOcean region-slug to start this digitalocean-droplet within (nyc1, sgp1, lon1, nyc3, ams3, fra1, tor1, sfo2, blr1)"
+}
+
+variable "digitalocean_token" {
+  description = "Your DigitalOcean API token used to issue cURL API calls directly to DigitalOcean to create the required image"
+}
+
+variable "opnsense_release" {
+  description = "The OPNsense release to target for this image build"
 }
 
 # variables - with defined defaults
@@ -22,13 +30,8 @@ variable "root_passwd" {
   default = "opnsense"
 }
 
-variable "remove_root_sshkeys" {
-  description = "Remove the root login ssh public key(s) after the droplet has completed - NB: the root bootstrap ssh private key remains in CLEARTEXT in the Terraform statefile and can easily be recovered, thus removing this key is strongly recommended."
-  default = 1
-}
-
 variable "digitalocean_image" {
-  description = "The digitalocean image to use as the base for this digitalocean-droplet."
+  description = "The DigitalOcean image to use as the base for this digitalocean-droplet."
   default = "freebsd-11-1-x64"
 }
 
