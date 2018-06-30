@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Copyright (c) 2018 Nicholas de Jong <me@nicholasdejong.com>
+#  - All rights reserved.
+#
+# Apache License v2.0
+#  - http://www.apache.org/licenses/LICENSE-2.0
+
 # cloudinit-bootstrap
 # - this script is used to bootstrap our way from a FreeBSD instance into an OPNsense one that gets "converted" by the
 #   opnsense-bootstrap.sh tool that we patch ever so slightly to prevent the default reboot behaviour - this script will

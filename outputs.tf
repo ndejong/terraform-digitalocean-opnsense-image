@@ -1,6 +1,12 @@
-
 # terraform-digitalocean-opnsense-cloud-image-builder
 # ============================================================================
+
+# Copyright (c) 2018 Nicholas de Jong <me@nicholasdejong.com>
+#  - All rights reserved.
+#
+# Apache License v2.0
+#  - http://www.apache.org/licenses/LICENSE-2.0
+
 
 # outputs
 # ===
