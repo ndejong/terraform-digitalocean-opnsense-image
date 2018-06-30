@@ -156,7 +156,6 @@ opnsensedigitalocean_start()
                 rm -f /var/lib/cloud/instance/user_data.sh
                 echo "OPNsense DigitalOcean: ERROR unable to decode b64decode+gunzip(user_data) to pass to /bin/sh"
             fi
-
         fi
 
         # =====================================================================
