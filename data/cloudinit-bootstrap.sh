@@ -26,8 +26,8 @@ chmod 755 /tmp/opnsense-bootstrap.sh
 echo -n '${opnsense_config_data}' | b64decode -r | gunzip > /usr/local/etc/config.xml
 
 # Insert an OPNsense style syshook that injects address data into the config.xml from the Digital Ocean cloud/seed/config_drive iso mount point
-echo -n '${opnsensedigitalocean_rc_data}' | b64decode -r | gunzip > /usr/local/etc/rc.syshook.d/50-opnsensedigitalocean.early
-chmod 755 /usr/local/etc/rc.syshook.d/50-opnsensedigitalocean.early
+echo -n '${opnsensedigitalocean_rc_data}' | b64decode -r | gunzip > /usr/local/etc/rc.syshook.d/12-opnsensedigitalocean.early
+chmod 755 /usr/local/etc/rc.syshook.d/12-opnsensedigitalocean.early
 
 # Add these FreeBSD packages manually rather than enabling the full FreeBSD repo here /usr/local/etc/pkg/repos/FreeBSD.conf
 __freebsd_static_package_install()
@@ -46,15 +46,15 @@ __freebsd_static_package_install "$freebsd_package_base/libxslt-1.1.32.txz"
 __freebsd_static_package_install "$freebsd_package_base/xmlstarlet-1.6.1.txz"
 
 # Remove things that do not belong under OPNsense and that we will not want in an image
-rm -Rf /var/lib/cloud
-rm -Rf /var/log/*
-rm -Rf /usr/home/freebsd/.ssh
-rm -f /etc/rc.conf
 rm -f /usr/local/etc/rc.d/digitalocean
 rm -f /usr/local/etc/rc.d/digitaloceanpre
 
-# finally, reboot after 20 seconds delay
-echo "!! SHUTDOWN DUE IN 20 SECONDS !!"
-nohup shutdown +20s &
+rm -f /etc/rc.conf
+rm -Rf /usr/home/freebsd/.ssh
+
+umount /var/lib/cloud/seed/config_drive
+rm -Rf /var/lib/cloud
+
+rm -Rf /var/log/*
 
 exit 0
