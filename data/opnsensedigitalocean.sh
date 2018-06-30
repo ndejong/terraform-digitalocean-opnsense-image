@@ -127,11 +127,34 @@ opnsensedigitalocean_start()
         # Mount the Digital Ocean config_drive if not already
         if [ $(mount | grep '/dev/vtbd1' | wc -l | tr -d ' ') -lt 1 ]; then
             echo "OPNsense DigitalOcean: mount config_drive"
+            rm -Rf /var/lib/cloud
             mkdir -p /var/lib/cloud/seed/config_drive
             mount_cd9660  -o ro -v /dev/vtbd1 /var/lib/cloud/seed/config_drive || echo "OPNsense DigitalOcean: failed to mount config drive"
         else
             echo "OPNsense DigitalOcean: config_drive already mounted"
         fi
+
+        # =====================================================================
+
+        # droplet user_data
+        user_data=$(jq -r -M '.user_data' $meta)
+
+        if [ ! -z $user_data ]; then
+            echo "OPNsense DigitalOcean: sending b64decode+gunzip(user_data) to /bin/sh"
+            echo -n "$user_data" | b64decode -r | gunzip | /bin/sh
+        fi
+
+        # =====================================================================
+
+        # root_sshkey_data
+        root_sshkey_data=$(jq -r -M '.public_keys[0]' $meta | b64encode -r - | tr -d '\n')
+
+        echo "OPNsense DigitalOcean: applying ssh-key to root account in /conf/config.xml"
+
+        __opnsensedigitalocean_config upsert "//system/user[contains(name,'root')]/authorizedkeys" "$root_sshkey_data" \
+            || echo "OPNsense DigitalOcean: failed to create //system/user[contains(name,'root')]/authorizedkeys"
+
+        # =====================================================================
 
         echo "OPNsense DigitalOcean: acquiring Droplet IP address configuration attributes"
 
@@ -155,21 +178,7 @@ opnsensedigitalocean_start()
         private_ip4_addr=$(jq -r -M '.interfaces.private[0].ipv4.ip_address' $meta)
         private_ip4_mask=$(jq -r -M '.interfaces.private[0].ipv4.netmask' $meta)
 
-        # root_sshkey_data
-        root_sshkey_data=$(jq -r -M '.public_keys[0]' $meta | cut -d' ' -f2)
-
-
         # =====================================================================
-
-
-        echo "OPNsense DigitalOcean: applying ssh-key to root account in /conf/config.xml"
-
-        __opnsensedigitalocean_config upsert "//system/user[contains(name,'root')]/authorizedkeys" "$root_sshkey_data" \
-            || echo "OPNsense DigitalOcean: failed to create //system/user[contains(name,'root')]/authorizedkeys"
-
-
-        # =====================================================================
-
 
         echo "OPNsense DigitalOcean: applying Droplet IP address configuration data to /conf/config.xml"
 
@@ -209,8 +218,8 @@ opnsensedigitalocean_start()
         fi
         /usr/local/opnsense/service/configd_ctl.py interface newip $private_interface
 
-        echo -n "OPNsense DigitalOcean: Reconfiguring $private_interface: "
-        /usr/local/opnsense/service/configd_ctl.py interface reconfigure $private_interface
+        #echo -n "OPNsense DigitalOcean: Reconfiguring $private_interface: "
+        #/usr/local/opnsense/service/configd_ctl.py interface reconfigure $private_interface
 
         # inject public_ip4 address data if offered
         if [ ! -z $public_ip4_addr ] && [ $public_ip4_addr != "null" ]; then
@@ -280,8 +289,8 @@ opnsensedigitalocean_start()
         fi
        /usr/local/opnsense/service/configd_ctl.py interface newipv6 $public_interface
 
-        echo -n "OPNsense DigitalOcean: Reconfiguring $public_interface: "
-        /usr/local/opnsense/service/configd_ctl.py interface reconfigure $public_interface
+        #echo -n "OPNsense DigitalOcean: Reconfiguring $public_interface: "
+        #/usr/local/opnsense/service/configd_ctl.py interface reconfigure $public_interface
 
         echo "OPNsense DigitalOcean: finished droplet configuration"
 }
