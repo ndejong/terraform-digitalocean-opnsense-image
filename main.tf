@@ -7,6 +7,10 @@
 # Apache License v2.0
 #  - http://www.apache.org/licenses/LICENSE-2.0
 
+# establish the digitalocean provider
+provider "digitalocean" {
+  token = "${var.digitalocean_token}"
+}
 
 # create a unique build-id value for this image build process
 # ===
@@ -190,7 +194,7 @@ resource "null_resource" "droplet-snapshot-action" {
 # off - note that the Droplet does not disappear from the DigitalOCean management interface until the snapshot image
 # process has completed its run
 resource "null_resource" "droplet-destroy" {
-  count = 1
+  count = "${var.self_destruct}"
 
   provisioner "local-exec" {
     command = <<EOF
