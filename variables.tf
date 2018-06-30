@@ -26,14 +26,19 @@ variable "opnsense_release" {
 # variables - with defined defaults
 # ===
 
+variable "root_passwd" {
+  description = "The initial root password for OPNsense once the image is built."
+  default = "opnsense"
+}
+
 variable "hostname" {
-  description = "The hostname applied to this digitalocean-droplet."
+  description = "The hostname applied to this digitalocean-droplet within the image build process only."
   default = "opnsense-cloud-image-builder"
 }
 
-variable "root_passwd" {
-  description = "The initial root password for OPNsense once installed."
-  default = "opnsense"
+variable "self_destruct" {
+  description = "Cause the Droplet used to create the snapshot image to self destruct itself once complete."
+  default = 1
 }
 
 variable "digitalocean_image" {
@@ -47,12 +52,12 @@ variable "digitalocean_size" {
 }
 
 variable "digitalocean_backups" {
-  description = "Enable/disable backup functionality on this digitalocean-droplet."
+  description = "Enable/disable backup functionality on this digitalocean-droplet - untested with OPNsense"
   default = false
 }
 
 variable "digitalocean_monitoring" {
-  description = "Enable/disable monitoring functionality on this digitalocean-droplet."
+  description = "Enable/disable monitoring functionality on this digitalocean-droplet - untested with OPNsense"
   default = false
 }
 
