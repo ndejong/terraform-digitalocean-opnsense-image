@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (c) 2018 Nicholas de Jong <me@nicholasdejong.com>
+# Copyright (c) 2018 Nicholas de Jong <contact[at]nicholasdejong.com>
 #  - All rights reserved.
 #
 # Apache License v2.0
