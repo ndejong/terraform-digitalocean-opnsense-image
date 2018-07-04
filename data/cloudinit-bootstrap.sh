@@ -35,7 +35,7 @@ echo -n '${opnsense_config_data}' | b64decode -r | gunzip > /usr/local/etc/confi
 echo -n '${opnsensedigitalocean_rc_data}' | b64decode -r | gunzip > /usr/local/etc/rc.syshook.d/12-opnsensedigitalocean.early
 chmod 755 /usr/local/etc/rc.syshook.d/12-opnsensedigitalocean.early
 
-# Add these FreeBSD packages manually rather than enabling the full FreeBSD repo here /usr/local/etc/pkg/repos/FreeBSD.conf
+# Add FreeBSD packages manually rather than enabling the full FreeBSD repo here /usr/local/etc/pkg/repos/FreeBSD.conf
 __freebsd_static_package_install()
 {
     fetch -o /tmp/__static_package_install.txz "$1"
@@ -43,7 +43,9 @@ __freebsd_static_package_install()
     rm -f /tmp/__static_package_install.txz
 }
 
+# a release is static so version numbers can be used below
 freebsd_package_base="https://pkg.freebsd.org/FreeBSD:11:`uname -m`/release_2/All"
+
 __freebsd_static_package_install "$freebsd_package_base/oniguruma-6.8.1.txz"
 __freebsd_static_package_install "$freebsd_package_base/jq-1.5_3.txz"
 __freebsd_static_package_install "$freebsd_package_base/libgpg-error-1.28.txz"
