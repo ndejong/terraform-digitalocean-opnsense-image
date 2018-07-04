@@ -72,6 +72,9 @@ addresses that can connect to your OPNsense control interfaces.
  * Remember to issue the `terraform destroy` at the end, else you may become confused what state you are in the next
    time to come to roll another Droplet based OPNsense image.
 
+## Builds Tested
+ * digitalocean-slug: `freebsd-11-1-x64` > OPNsense 18.1.10 (@ 2018-07-04T15:39:47Z)
+ * digitalocean-slug: `freebsd-11-1-x64` > OPNsense 18.1.11 (@ 2018-06-30T15:11:37Z)
 
 ## Input Variables - Required
 
