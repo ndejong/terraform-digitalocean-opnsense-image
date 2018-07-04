@@ -20,7 +20,7 @@ fetch -o "/conf/config.xml" "https://your-awesome-hosting/opnsense-backups/lates
 
 
 ## Usage
-This module is mildly unusual in that the final result does not provide a running Droplet.  The correct behaviour
+This module is mildly unusual in that the final result does **not** provide a running Droplet.  The correct behaviour
 of this module will result in a Digital Ocean Droplet image while the Droplet used in the process of creating the 
 image will self destruct.  The self destruct behaviour can be optionally disabled by toggling the `self_destruct` 
 variable which can be useful in situations that require debugging.
@@ -60,9 +60,15 @@ addresses that can connect to your OPNsense control interfaces.
  * The image "build" process leverages the OPNsense provided `opnsense-bootstrap.sh` tool to "convert" a FreeBSD 
    Droplet into an OPNsense one, check it out here - https://github.com/opnsense/update
  * Builds generally take around 10 minutes when using a small-sized Digital Ocean Droplet size - you will see a lot
-   of output as the process continues.
- * Builds can fail for many reasons, external packages may not download, kernel-panics have been observed and 
-   the Digital Ocean API can act mysteriously at times. 
+   of Terraform output as the process continues.
+ * Builds can fail for many reasons, external packages may not download, kernel-panics have been observed, you do need
+   to keep an eye on the Terraform logging output to make sure nothing obvious is going wrong. 
+ * The Digital Ocean API can act mysteriously at times,  several times it has been observed that the final Droplet
+   image process silents fails to register the new Droplet snapshot, the resolution seems to be just `destroying`
+   and going through the process again without changing anything.
+ * Be sure to issue a `terraform destroy` once all has been completed, this will remove the resources that have
+   allocated in the `tfstate` - they can all safely be destroyed, your new Droplet image will not be removed in 
+   the destroy.
 
 
 ## Input Variables - Required
