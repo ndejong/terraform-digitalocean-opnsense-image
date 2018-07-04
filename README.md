@@ -46,6 +46,9 @@ output "image_name" { value = "${module.opnsense-cloud-image-builder.image_name}
 output "action_status" { value = "${module.opnsense-cloud-image-builder.action_status}"}
 ```
 
+The user should perform a `terraform destroy` once complete to remove the resources that have allocated in the local 
+`tfstate` - they can all safely be destroyed, your new Droplet image will not be removed in this destroy action.
+
 
 ## Warning!
 The default rules used in this arrangement differ from the default OPNsense rules in that they **allow** access to the 
@@ -66,9 +69,8 @@ addresses that can connect to your OPNsense control interfaces.
  * The Digital Ocean API can act mysteriously at times,  several times it has been observed that the final Droplet
    image process silents fails to register the new Droplet snapshot, the resolution seems to be just `destroying`
    and going through the process again without changing anything.
- * Be sure to issue a `terraform destroy` once all has been completed, this will remove the resources that have
-   allocated in the `tfstate` - they can all safely be destroyed, your new Droplet image will not be removed in 
-   the destroy.
+ * Remember to issue the `terraform destroy` at the end, else you may become confused what state you are in the next
+   time to come to roll another Droplet based OPNsense image.
 
 
 ## Input Variables - Required
