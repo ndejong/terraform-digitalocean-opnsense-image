@@ -180,10 +180,12 @@ resource "null_resource" "action_data" {
 resource "null_resource" "droplet-snapshot-action" {
   provisioner "local-exec" {
     command = <<EOF
+        sleep 5
         curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer ${var.digitalocean_token}' \
           -d '${null_resource.action_data.triggers.json}' \
           'https://api.digitalocean.com/v2/droplets/${digitalocean_droplet.droplet.id}/actions' \
           > /tmp/opnsense-digitalocean-${random_string.build-id.result}-snapshot-action.json
+        sleep 10
     EOF
   }
   depends_on = [ "null_resource.droplet-wait-poweroff" ]
