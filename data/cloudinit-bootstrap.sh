@@ -20,9 +20,8 @@ pkg install -y ca_root_nss
 # fetch the OPNsense bootstrap script
 fetch -o /tmp/opnsense-bootstrap.sh "$opnsense_bootstrap_uri"
 
-# patch the OPNsense bootstrap script to suit our install requirement
-echo -n '${opnsense_bootstrap_patch_data}' | b64decode -r | gunzip > /tmp/opnsense-bootstrap.patch
-patch /tmp/opnsense-bootstrap.sh /tmp/opnsense-bootstrap.patch
+# remove the reboot at the end of the opnsense-bootstrap.sh script
+sed -i -e '/.*reboot/s/^.*$/#opnsense-cloud-image-builder# reboot/' /tmp/opnsense-bootstrap.sh
 chmod 755 /tmp/opnsense-bootstrap.sh
 
 # call the patched OPNsense bootstrap script

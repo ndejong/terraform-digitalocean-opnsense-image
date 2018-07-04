@@ -62,7 +62,6 @@ data "template_file" "cloudinit-bootstrap-sh" {
   template = "${file("${path.module}/data/cloudinit-bootstrap.sh")}"
   vars {
     opnsense_release = "${var.opnsense_release}"
-    opnsense_bootstrap_patch_data = "${base64gzip(file("${path.module}/data/opnsense-bootstrap.patch"))}"
     opnsense_config_data = "${base64gzip(data.template_file.opnsense-config-xml.rendered)}"
     opnsensedigitalocean_rc_data = "${base64gzip(data.template_file.opnsensedigitalocean-sh.rendered)}"
   }
