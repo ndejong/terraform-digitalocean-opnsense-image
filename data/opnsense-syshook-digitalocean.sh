@@ -153,7 +153,8 @@ opnsense_main()
         if [ $(mount | grep '/dev/vtbd1' | wc -l | tr -d ' ') -lt 1 ]; then
             echo "OPNsense Syshook: mount config_drive"
             mkdir -p /var/lib/cloud/seed/config_drive
-            mount_cd9660  -o ro -v /dev/vtbd1 /var/lib/cloud/seed/config_drive || echo "OPNsense Syshook: failed to mount config drive"
+            mount_cd9660  -o ro -v /dev/vtbd1 /var/lib/cloud/seed/config_drive \
+                || echo "OPNsense Syshook: failed to mount config drive"
         else
             echo "OPNsense Syshook: config_drive already mounted"
         fi
@@ -222,7 +223,8 @@ opnsense_main()
         echo "OPNsense Syshook: applying ssh-key to root account in $CONFIGFILE"
 
         # root user ssh key
-        opnsense_config upsert "//system/user[contains(name,'root')]/authorizedkeys" "$root_sshkey_data"                 || echo "OPNsense Syshook: failed to create //system/user[contains(name,'root')]/authorizedkeys"
+        opnsense_config upsert "//system/user[contains(name,'root')]/authorizedkeys" "$root_sshkey_data" \
+            || echo "OPNsense Syshook: failed to create //system/user[contains(name,'root')]/authorizedkeys"
 
         # =====================================================================
 
@@ -230,62 +232,88 @@ opnsense_main()
 
         # inject AWS provided nameservers if none are set
         if [ -z $(opnsense_config read "//system/dnsserver[1]") ]; then
-            opnsense_config create "//system/dnsserver" "$public_ip4_nameserver1"                                        || echo "OPNsense Syshook: failed to create //system/dnsserver[1]"
-            opnsense_config create "//system/dnsserver" "$public_ip4_nameserver2"                                        || echo "OPNsense Syshook: failed to create //system/dnsserver[2]"
+            opnsense_config create "//system/dnsserver" "$public_ip4_nameserver1" \
+                || echo "OPNsense Syshook: failed to create //system/dnsserver[1]"
+            opnsense_config create "//system/dnsserver" "$public_ip4_nameserver2" \
+                || echo "OPNsense Syshook: failed to create //system/dnsserver[2]"
         fi
 
         # inject public_ip4 address data if available
         if [ ! -z $public_ip4_addr ] && [ $public_ip4_addr != "null" ]; then
-            opnsense_config update "//interfaces/public/ipaddr" "$public_ip4_addr"                                       || echo "OPNsense Syshook: failed to update //interfaces/public/ipaddr"
-            opnsense_config update "//interfaces/public/subnet" "$public_ip4_subnet"                                     || echo "OPNsense Syshook: failed to update //interfaces/public/subnet"
-            opnsense_config update "//gateways/gateway_item[contains(name,'public4gw')]/gateway" "$public_ip4_gateway"   || echo "OPNsense Syshook: failed to update //gateways/gateway_item[contains(name,'public4gw')]/gateway"
-            opnsense_config delete "//gateways/gateway_item[contains(name,'public4gw')]/disabled"                        || echo "OPNsense Syshook: failed to delete //gateways/gateway_item[contains(name,'public4gw')]/disabled"
+            opnsense_config update "//interfaces/public/ipaddr" "$public_ip4_addr" \
+                || echo "OPNsense Syshook: failed to update //interfaces/public/ipaddr"
+            opnsense_config update "//interfaces/public/subnet" "$public_ip4_subnet" \
+                || echo "OPNsense Syshook: failed to update //interfaces/public/subnet"
+            opnsense_config update "//gateways/gateway_item[contains(name,'public4gw')]/gateway" "$public_ip4_gateway" \
+                || echo "OPNsense Syshook: failed to update //gateways/gateway_item[contains(name,'public4gw')]/gateway"
+            opnsense_config delete "//gateways/gateway_item[contains(name,'public4gw')]/disabled" \
+                || echo "OPNsense Syshook: failed to delete //gateways/gateway_item[contains(name,'public4gw')]/disabled"
             echo -n "OPNsense Syshook: Applying IPv4 to $public_interface: "
         else
-            opnsense_config update "//interfaces/public/ipaddr" "null"                                                   || echo "OPNsense Syshook: failed to update //interfaces/public/ipaddr"
-            opnsense_config update "//interfaces/public/subnet" "32"                                                     || echo "OPNsense Syshook: failed to update //interfaces/public/subnet"
-            opnsense_config update "//gateways/gateway_item[contains(name,'public4gw')]/gateway" "disabled"              || echo "OPNsense Syshook: failed to update //gateways/gateway_item[contains(name,'public4gw')]/gateway"
-            opnsense_config create "//gateways/gateway_item[contains(name,'public4gw')]/disabled" "1"                    || echo "OPNsense Syshook: failed to create //gateways/gateway_item[contains(name,'public4gw')]/disabled"
+            opnsense_config update "//interfaces/public/ipaddr" "null" \
+                || echo "OPNsense Syshook: failed to update //interfaces/public/ipaddr"
+            opnsense_config update "//interfaces/public/subnet" "32" \
+                || echo "OPNsense Syshook: failed to update //interfaces/public/subnet"
+            opnsense_config update "//gateways/gateway_item[contains(name,'public4gw')]/gateway" "disabled" \
+                || echo "OPNsense Syshook: failed to update //gateways/gateway_item[contains(name,'public4gw')]/gateway"
+            opnsense_config create "//gateways/gateway_item[contains(name,'public4gw')]/disabled" "1" \
+                || echo "OPNsense Syshook: failed to create //gateways/gateway_item[contains(name,'public4gw')]/disabled"
             echo -n "OPNsense Syshook: Removing IPv4 on $public_interface: "
         fi
         /usr/local/opnsense/service/configd_ctl.py interface newip $public_interface
 
         # inject public_ip6 address data if available
         if [ ! -z $public_ip6_addr ] && [ $public_ip6_addr != "null" ]; then
-            opnsense_config upsert "//interfaces/public/ipaddrv6" "$public_ip6_addr"                                     || echo "OPNsense Syshook: failed to upsert //interfaces/public/ipaddrv6"
-            opnsense_config upsert "//interfaces/public/subnetv6" "$public_ip6_subnet"                                   || echo "OPNsense Syshook: failed to upsert //interfaces/public/subnetv6"
-            opnsense_config upsert "//gateways/gateway_item[contains(name,'public6gw')]/gateway" "$public_ip6_gateway"   || echo "OPNsense Syshook: failed to upsert //gateways/gateway_item[contains(name,'public6gw')]/gateway"
-            opnsense_config delete "//gateways/gateway_item[contains(name,'public6gw')]/disabled"                        || echo "OPNsense Syshook: failed to delete //gateways/gateway_item[contains(name,'public6gw')]/disabled"
+            opnsense_config upsert "//interfaces/public/ipaddrv6" "$public_ip6_addr" \
+                || echo "OPNsense Syshook: failed to upsert //interfaces/public/ipaddrv6"
+            opnsense_config upsert "//interfaces/public/subnetv6" "$public_ip6_subnet" \
+                || echo "OPNsense Syshook: failed to upsert //interfaces/public/subnetv6"
+            opnsense_config upsert "//gateways/gateway_item[contains(name,'public6gw')]/gateway" "$public_ip6_gateway" \
+                || echo "OPNsense Syshook: failed to upsert //gateways/gateway_item[contains(name,'public6gw')]/gateway"
+            opnsense_config delete "//gateways/gateway_item[contains(name,'public6gw')]/disabled" \
+                || echo "OPNsense Syshook: failed to delete //gateways/gateway_item[contains(name,'public6gw')]/disabled"
             echo -n "OPNsense Syshook: Applying IPv6 on $public_interface: "
         else
-            opnsense_config upsert "//interfaces/public/ipaddrv6" "null"                                                 || echo "OPNsense Syshook: failed to upsert //interfaces/public/ipaddrv6"
-            opnsense_config upsert "//interfaces/public/subnetv6" "128"                                                  || echo "OPNsense Syshook: failed to upsert //interfaces/public/subnetv6"
-            opnsense_config upsert "//gateways/gateway_item[contains(name,'public6gw')]/gateway" "disabled"              || echo "OPNsense Syshook: failed to upsert //gateways/gateway_item[contains(name,'public6gw')]/gateway"
-            opnsense_config create "//gateways/gateway_item[contains(name,'public6gw')]/disabled" "1"                    || echo "OPNsense Syshook: failed to create //gateways/gateway_item[contains(name,'public6gw')]/disabled"
+            opnsense_config upsert "//interfaces/public/ipaddrv6" "null" \
+                || echo "OPNsense Syshook: failed to upsert //interfaces/public/ipaddrv6"
+            opnsense_config upsert "//interfaces/public/subnetv6" "128" \
+                || echo "OPNsense Syshook: failed to upsert //interfaces/public/subnetv6"
+            opnsense_config upsert "//gateways/gateway_item[contains(name,'public6gw')]/gateway" "disabled" \
+                || echo "OPNsense Syshook: failed to upsert //gateways/gateway_item[contains(name,'public6gw')]/gateway"
+            opnsense_config create "//gateways/gateway_item[contains(name,'public6gw')]/disabled" "1" \
+                || echo "OPNsense Syshook: failed to create //gateways/gateway_item[contains(name,'public6gw')]/disabled"
             echo -n "OPNsense Syshook: Removing IPv6 on $public_interface: "
         fi
        /usr/local/opnsense/service/configd_ctl.py interface newipv6 $public_interface
 
         # inject private_ip4 address data if available
         if [ ! -z $private_ip4_addr ] && [ $private_ip4_addr != "null" ]; then
-            opnsense_config update "//interfaces/private/ipaddr" "$private_ip4_addr"                                     || echo "OPNsense Syshook: failed to update //interfaces/private/ipaddr"
-            opnsense_config update "//interfaces/private/subnet" "$private_ip4_subnet"                                   || echo "OPNsense Syshook: failed to update //interfaces/private/subnet"
+            opnsense_config update "//interfaces/private/ipaddr" "$private_ip4_addr" \
+                || echo "OPNsense Syshook: failed to update //interfaces/private/ipaddr"
+            opnsense_config update "//interfaces/private/subnet" "$private_ip4_subnet" \
+                || echo "OPNsense Syshook: failed to update //interfaces/private/subnet"
             echo -n "OPNsense Syshook: Applying IPv4 to $private_interface: "
         else
-            opnsense_config update "//interfaces/private/ipaddr" "null"                                                  || echo "OPNsense Syshook: failed to update //interfaces/private/ipaddr"
-            opnsense_config update "//interfaces/private/subnet" "32"                                                    || echo "OPNsense Syshook: failed to update //interfaces/private/subnet"
+            opnsense_config update "//interfaces/private/ipaddr" "null" \
+                || echo "OPNsense Syshook: failed to update //interfaces/private/ipaddr"
+            opnsense_config update "//interfaces/private/subnet" "32" \
+                || echo "OPNsense Syshook: failed to update //interfaces/private/subnet"
             echo -n "OPNsense Syshook: Removing IPv4 on $private_interface: "
         fi
         /usr/local/opnsense/service/configd_ctl.py interface newip $private_interface
 
         # inject private_ip6 address data if available
         if [ ! -z $private_ip6_addr ] && [ $private_ip6_addr != "null" ]; then
-            opnsense_config upsert "//interfaces/private/ipaddrv6" "$private_ip6_addr"                                   || echo "OPNsense Syshook: failed to upsert //interfaces/private/ipaddrv6"
-            opnsense_config upsert "//interfaces/private/subnetv6" "$private_ip6_subnet"                                 || echo "OPNsense Syshook: failed to upsert //interfaces/private/subnetv6"
+            opnsense_config upsert "//interfaces/private/ipaddrv6" "$private_ip6_addr" \
+                || echo "OPNsense Syshook: failed to upsert //interfaces/private/ipaddrv6"
+            opnsense_config upsert "//interfaces/private/subnetv6" "$private_ip6_subnet" \
+                || echo "OPNsense Syshook: failed to upsert //interfaces/private/subnetv6"
             echo -n "OPNsense Syshook: Applying IPv6 on $private_interface: "
         else
-            opnsense_config upsert "//interfaces/private/ipaddrv6" "null"                                                || echo "OPNsense Syshook: failed to upsert //interfaces/private/ipaddrv6"
-            opnsense_config upsert "//interfaces/private/subnetv6" "128"                                                 || echo "OPNsense Syshook: failed to upsert //interfaces/private/subnetv6"
+            opnsense_config upsert "//interfaces/private/ipaddrv6" "null" \
+                || echo "OPNsense Syshook: failed to upsert //interfaces/private/ipaddrv6"
+            opnsense_config upsert "//interfaces/private/subnetv6" "128" \
+                || echo "OPNsense Syshook: failed to upsert //interfaces/private/subnetv6"
             echo -n "OPNsense Syshook: Removing IPv6 on $private_interface: "
         fi
         /usr/local/opnsense/service/configd_ctl.py interface newipv6 $private_interface
