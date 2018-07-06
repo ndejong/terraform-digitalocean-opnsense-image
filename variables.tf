@@ -38,7 +38,7 @@ variable "hostname" {
 
 variable "digitalocean_image" {
   description = "The DigitalOcean image to use as the base for this digitalocean-droplet."
-  default = "freebsd-11-1-x64"
+  default = "freebsd-11-2-x64"
 }
 
 variable "digitalocean_size" {
