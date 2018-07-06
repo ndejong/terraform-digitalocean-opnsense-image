@@ -18,7 +18,7 @@ output "region" {
 
 output "image_name" {
   description = "The image name used for this Droplet image."
-  value = "${null_resource.image_name.triggers.string}"
+  value = "${null_resource.image-name.triggers.string}"
 }
 
 output "action_status" {

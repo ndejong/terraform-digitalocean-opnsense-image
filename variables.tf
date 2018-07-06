@@ -36,11 +36,6 @@ variable "hostname" {
   default = "opnsense-cloud-image-builder"
 }
 
-variable "self_destruct" {
-  description = "Cause the Droplet used to create the snapshot image to self destruct itself once complete."
-  default = 1
-}
-
 variable "digitalocean_image" {
   description = "The DigitalOcean image to use as the base for this digitalocean-droplet."
   default = "freebsd-11-1-x64"
@@ -69,4 +64,24 @@ variable "digitalocean_ipv6" {
 variable "digitalocean_private_networking" {
   description = "Enable/disable private-networking functionality on this digitalocean-droplet."
   default = true
+}
+
+variable "do_opnsense_install" {
+  description = ""
+  default = 1
+}
+
+variable "do_cleanup_shutdown" {
+  description = ""
+  default = 1
+}
+
+variable "do_snapshot" {
+  description = ""
+  default = 1
+}
+
+variable "do_self_destruct" {
+  description = "Cause the Droplet used to create the snapshot image to self destruct itself once complete."
+  default = 0
 }

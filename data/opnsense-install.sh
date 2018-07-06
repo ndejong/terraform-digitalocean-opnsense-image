@@ -6,9 +6,9 @@
 # Apache License v2.0
 #  - http://www.apache.org/licenses/LICENSE-2.0
 
-# cloudinit-bootstrap
+# opnsense-install
 # - this script is used to bootstrap our way from a FreeBSD instance into an OPNsense one that gets "converted" by the
-#   opnsense-bootstrap.sh tool that we patch ever so slightly to prevent the default reboot behaviour - this script will
+#   opnsense-bootstrap.sh tool that we edit to prevent the default reboot behaviour at the end - this script will
 #   not get run again in subsequent boots of the OPNsense image created
 
 # Set some required resource source locations
@@ -30,9 +30,10 @@ chmod 755 /tmp/opnsense-bootstrap.sh
 # Replace the alternate initial config.xml from $path.module/data/config.xml
 echo -n '${opnsense_config_data}' | b64decode -r | gunzip > /usr/local/etc/config.xml
 
-# Insert an OPNsense style syshook that injects address data into the config.xml from the Digital Ocean cloud/seed/config_drive iso mount point
-echo -n '${opnsensedigitalocean_rc_data}' | b64decode -r | gunzip > /usr/local/etc/rc.syshook.d/12-opnsensedigitalocean.early
-chmod 755 /usr/local/etc/rc.syshook.d/12-opnsensedigitalocean.early
+# Insert an OPNsense style syshook that injects address data into the config.xml from the meta data source
+# NB: a change occurred here between 18.1.10 and 18.1.11 where the path was .../rc.syshook.d/12-opnsense.early
+echo -n '${opnsense_syshook_data}' | b64decode -r | gunzip > /usr/local/etc/rc.syshook.d/early/12-opnsense
+chmod 755 /usr/local/etc/rc.syshook.d/early/12-opnsense
 
 # Add FreeBSD packages manually rather than enabling the full FreeBSD repo here /usr/local/etc/pkg/repos/FreeBSD.conf
 __freebsd_static_package_install()
@@ -42,7 +43,7 @@ __freebsd_static_package_install()
     rm -f /tmp/__static_package_install.txz
 }
 
-# a release is static so version numbers can be used below
+# The release is named statically so explicit version numbers can be safely used - OPNsense may upgrade them later
 freebsd_package_base="https://pkg.freebsd.org/FreeBSD:11:`uname -m`/release_2/All"
 
 __freebsd_static_package_install "$freebsd_package_base/oniguruma-6.8.1.txz"
@@ -52,16 +53,9 @@ __freebsd_static_package_install "$freebsd_package_base/libgcrypt-1.8.2.txz"
 __freebsd_static_package_install "$freebsd_package_base/libxslt-1.1.32.txz"
 __freebsd_static_package_install "$freebsd_package_base/xmlstarlet-1.6.1.txz"
 
-# Remove things that do not belong under OPNsense and that we will not want in an image
-rm -f /usr/local/etc/rc.d/digitalocean
-rm -f /usr/local/etc/rc.d/digitaloceanpre
-
+### Remove things that do not belong under OPNsense and that we don't want in our image
 rm -f /etc/rc.conf
-rm -Rf /usr/home/freebsd/.ssh
-
-umount /var/lib/cloud/seed/config_drive
-rm -Rf /var/lib/cloud
-
+rm -Rf /usr/home/ec2-user
 rm -Rf /var/log/*
 
 exit 0
