@@ -46,16 +46,6 @@ variable "digitalocean_size" {
   default = "s-1vcpu-1gb"
 }
 
-variable "digitalocean_backups" {
-  description = "Enable/disable backup functionality on this digitalocean-droplet - untested with OPNsense"
-  default = false
-}
-
-variable "digitalocean_monitoring" {
-  description = "Enable/disable monitoring functionality on this digitalocean-droplet - untested with OPNsense"
-  default = false
-}
-
 variable "digitalocean_ipv6" {
   description = "Enable/disable getting a public IPv6 on this digitalocean-droplet."
   default = true
@@ -67,21 +57,21 @@ variable "digitalocean_private_networking" {
 }
 
 variable "do_opnsense_install" {
-  description = ""
+  description = "Cause OPNsense to be installed once the instance is reachable."
   default = 1
 }
 
 variable "do_cleanup_shutdown" {
-  description = ""
+  description = "Cause the system to perform cleanup operations and then shutdown."
   default = 1
 }
 
-variable "do_snapshot" {
-  description = ""
+variable "do_image" {
+  description = "Cause a Digital Ocean Droplet image to be taken of the Droplet while powered off."
   default = 1
 }
 
 variable "do_self_destruct" {
-  description = "Cause the Droplet used to create the snapshot image to self destruct itself once complete."
-  default = 0
+  description = "Cause the Droplet that was used to create the snapshot image to delete itself itself once the image is done."
+  default = 1
 }

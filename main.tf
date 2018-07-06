@@ -76,8 +76,8 @@ resource "digitalocean_droplet" "build-instance" {
   name = "${var.hostname}"
   region = "${var.digitalocean_region}"
   size = "${var.digitalocean_size}"
-  backups = "${var.digitalocean_backups}"
-  monitoring = "${var.digitalocean_monitoring}"
+  backups = false     # pointless for this short-lived instance
+  monitoring = false  # pointless for this short-lived instance
   ipv6 = "${var.digitalocean_ipv6}"
   private_networking = "${var.digitalocean_private_networking}"
   ssh_keys = [ "${digitalocean_ssh_key.terraform-bootstrap-sshkey.id}" ]
@@ -217,7 +217,7 @@ resource "null_resource" "action-data" {
 # take a image of this Droplet via the DigitalOcean API
 # ===
 resource "null_resource" "instance-snapshot-action" {
-  count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_snapshot}"
+  count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_image}"
 
   provisioner "local-exec" {
     command = <<EOF
@@ -236,7 +236,7 @@ resource "null_resource" "instance-snapshot-action" {
 # off - note that the Droplet does not disappear from the DigitalOCean management interface until the snapshot image
 # process has completed its run
 resource "null_resource" "droplet-destroy" {
-  count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_snapshot * var.do_self_destruct}"
+  count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_image * var.do_self_destruct}"
 
   provisioner "local-exec" {
     command = <<EOF
@@ -252,7 +252,7 @@ resource "null_resource" "droplet-destroy" {
 # force some Terraform log output so it is a little easier to immediately observe the final status
 # ===
 resource "null_resource" "droplet-snapshot-action-status" {
-  count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_snapshot}"
+  count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_image}"
 
   provisioner "local-exec" {
     command = <<EOF
