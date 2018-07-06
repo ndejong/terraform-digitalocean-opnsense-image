@@ -71,10 +71,17 @@ addresses that can connect to your OPNsense control interfaces.
    and going through the process again without changing anything.
  * Remember to issue the `terraform destroy` at the end, else you may become confused what state you are in the next
    time to come to roll another Droplet based OPNsense image.
+   
+## Bugs
+ * When starting the OPNsense instance for the first time the IPv6 gateway will not automatically come up and system
+   updates will fail in the GUI - the work-around is to navigate to "Interfaces > \[public\] do not edit anything, just
+    save the interface again which in turn correctly(?) reloads the network stack causing everything to be functional.
 
 ## Builds Tested
- * digitalocean-slug: `freebsd-11-1-x64` > OPNsense 18.1.10 (@ 2018-07-04T15:39:47Z)
- * digitalocean-slug: `freebsd-11-1-x64` > OPNsense 18.1.11 (@ 2018-06-30T15:11:37Z)
+ * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.10** (@ 2018-07-04T15:39:47Z)
+ * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.11** (@ 2018-06-30T15:11:37Z)
+ * (v0.3) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.11** (@ 2018-07-06T17:31:52Z)
+
 
 ## Input Variables - Required
 
