@@ -196,6 +196,8 @@ resource "null_resource" "instance-wait-poweroff" {
 # create a name for the droplet - using a null_resource apporach allows us to use a variable in the name here
 # ===
 resource "null_resource" "image-name" {
+  count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_image}"
+
   triggers = {
     string = "OPNsense ${var.opnsense_release} - ${timestamp()}"
   }
@@ -204,6 +206,8 @@ resource "null_resource" "image-name" {
 # create the action data for the snaphot we are going to take
 # ===
 resource "null_resource" "action-data" {
+  count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_image}"
+
   triggers = {
     json = <<EOF
       {
