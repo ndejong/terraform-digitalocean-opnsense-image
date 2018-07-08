@@ -31,9 +31,9 @@ chmod 755 /tmp/opnsense-bootstrap.sh
 echo -n '${opnsense_config_data}' | b64decode -r | gunzip > /usr/local/etc/config.xml
 
 # Insert an OPNsense style syshook that injects address data into the config.xml from the meta data source
-# NB: a change occurred here between 18.1.10 and 18.1.11 where the path was .../rc.syshook.d/12-opnsense.early
-echo -n '${opnsense_syshook_data}' | b64decode -r | gunzip > /usr/local/etc/rc.syshook.d/early/12-opnsense
-chmod 755 /usr/local/etc/rc.syshook.d/early/12-opnsense
+# NB: a change occurred between 18.1.10 and 18.1.11 where this path was > rc.syshook.d/50-opnsense-digitalocean.start
+echo -n '${opnsense_syshook_data}' | b64decode -r | gunzip > /usr/local/etc/rc.syshook.d/start/50-opnsense-digitalocean
+chmod 755 /usr/local/etc/rc.syshook.d/start/50-opnsense-digitalocean
 
 # Add FreeBSD packages manually rather than enabling the full FreeBSD repo here /usr/local/etc/pkg/repos/FreeBSD.conf
 __freebsd_static_package_install()
@@ -52,10 +52,5 @@ __freebsd_static_package_install "$freebsd_package_base/libgpg-error-1.28.txz"
 __freebsd_static_package_install "$freebsd_package_base/libgcrypt-1.8.2.txz"
 __freebsd_static_package_install "$freebsd_package_base/libxslt-1.1.32.txz"
 __freebsd_static_package_install "$freebsd_package_base/xmlstarlet-1.6.1.txz"
-
-### Remove things that do not belong under OPNsense and that we don't want in our image
-rm -f /etc/rc.conf
-rm -Rf /usr/home/ec2-user
-rm -Rf /var/log/*
 
 exit 0
