@@ -10,20 +10,18 @@ their seed data, including public-IPv4, public-IPv6, private-IPv4, root-sshkey a
 be parsed and injected into the OPNsense `/conf/config.xml` file at Droplet boot.  This allows the resulting 
 OPNsense image to be used in Terraform devops automation situations.
 
-Users of the resulting OPNsense image may additionally wish to implement user_data that fetches an external
-`confg.xml` file and places it in the usual `/conf/config.xml` location, which will be loaded at startup.
+Users of the resulting OPNsense image may wish cause a script to run on the initial startup:-
 
 ```bash
 #!/bin/sh
-fetch -o "/conf/config.xml" "https://your-awesome-hosting/opnsense-backups/latest.xml"
+echo -n 'H4sIAPVLQlsCAx3LSQqAMAxA0b2nKN3H7L1NLelAhxSTot5eKXze7gdSnwywsei5h0WO+9OqNTapDjkQX54XuJuEG0Fi0dwj8uhCf3A6X+YQrE5JdK3bB4z8+mJXAAAA'  | b64decode -r | gunzip | /bin/sh
 ```
 
 
 ## Usage
 This module is mildly unusual in that the final result does **not** provide a running Droplet.  The correct behaviour
 of this module will result in a Digital Ocean Droplet image while the Droplet used in the process of creating the 
-image will self destruct.  The self destruct behaviour can be optionally disabled by toggling the `self_destruct` 
-variable which can be useful in situations that require debugging.
+image will self destruct.
 
 The example below shows an example setup - note that the **root_passwd** variable is optional and by default will
 use the same default password that OPNsense uses, that is "opnsense" - be smart, change this as your OPNsense 
@@ -33,13 +31,19 @@ instance will be publicly accessible to begin with.
 variable "do_token" {}
 
 module "opnsense-cloud-image-builder" {
-  source  = "ndejong/opnsense-cloud-image-builder/digitalocean"
+  source  = "../../terraform-digitalocean-opnsense-cloud-image-builder"
+
+  opnsense_release = "18.1"
+  root_passwd = "honeyPot..."
 
   digitalocean_region = "sgp1"
   digitalocean_token = "${var.do_token}"
-  opnsense_release = "18.1"
 
-  root_passwd = "honeyPot.."
+
+  do_opnsense_install = 1
+  do_cleanup_shutdown = 1
+  do_image = 1
+  do_self_destruct = 1
 }
 
 output "image_name" { value = "${module.opnsense-cloud-image-builder.image_name}"}
@@ -47,7 +51,8 @@ output "action_status" { value = "${module.opnsense-cloud-image-builder.action_s
 ```
 
 The user should perform a `terraform destroy` once complete to remove the resources that have allocated in the local 
-`tfstate` - they can all safely be destroyed, your new Droplet image will not be removed in this destroy action.
+`tfstate` - they can all safely be destroyed, the new Droplet image will not be removed in this destroy action because
+it gets created via a `local-exec` call to `curl` that manually invokes the Digital Ocean API to cause the image action.  
 
 
 ## Warning!
@@ -71,16 +76,24 @@ addresses that can connect to your OPNsense control interfaces.
    and going through the process again without changing anything.
  * Remember to issue the `terraform destroy` at the end, else you may become confused what state you are in the next
    time to come to roll another Droplet based OPNsense image.
+
    
 ## Bugs
  * When starting the OPNsense instance for the first time the IPv6 gateway will not automatically come up and system
    updates will fail in the GUI - the work-around is to navigate to "Interfaces > \[public\] do not edit anything, just
     save the interface again which in turn correctly(?) reloads the network stack causing everything to be functional.
 
+
 ## Builds Tested
  * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.10** (@ 2018-07-04T15:39:47Z)
  * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.11** (@ 2018-06-30T15:11:37Z)
  * (v0.3) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.11** (@ 2018-07-06T17:31:52Z)
+
+
+## What about Packer?
+Packer, also produced by Hashicorp is an awesome tool, but requires learning yet another tool-chain. Since the resulting 
+Digital Ocean images are targeted at DevOps people that use Terraform, using Terraform to generate the image(s) seems 
+reasonable enough and more likely to attract feedback/pull-requests from others.
 
 
 ## Input Variables - Required
