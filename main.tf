@@ -180,7 +180,7 @@ resource "null_resource" "cleanup-shutdown-action" {
   depends_on = [ "null_resource.opnsense-install-action" ]
 }
 
-# query the DigitalOcean API until this droplet is no longer active
+# query the provider API until this instance is no longer active
 # ===
 resource "null_resource" "instance-wait-poweroff" {
   count = "${var.do_opnsense_install * var.do_cleanup_shutdown}"
@@ -197,7 +197,7 @@ resource "null_resource" "instance-wait-poweroff" {
   depends_on = [ "null_resource.cleanup-shutdown-action" ]
 }
 
-# create a name for the droplet - using a null_resource apporach allows us to use a variable in the name here
+# create a name for the instance - using a null_resource approach allows us to use a variable in the name here
 # ===
 resource "null_resource" "image-name" {
   triggers = {
@@ -269,4 +269,3 @@ resource "null_resource" "droplet-snapshot-action-status" {
   }
   depends_on = [ "null_resource.instance-snapshot-action" ]
 }
-
