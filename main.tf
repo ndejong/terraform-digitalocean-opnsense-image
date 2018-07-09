@@ -188,7 +188,7 @@ resource "null_resource" "instance-wait-poweroff" {
   provisioner "local-exec" {
     command = <<EOF
       while [ $(curl -s -X GET -H 'Content-Type: application/json' -H 'Authorization: Bearer ${var.digitalocean_token}' 'https://api.digitalocean.com/v2/droplets/${digitalocean_droplet.build-instance.id}' | jq -r '.droplet.status') = 'active' ]; do
-          echo 'Waiting for Droplet ${digitalocean_droplet.build-instance.id} to enter powered off state...'
+          echo 'Waiting for instance ${digitalocean_droplet.build-instance.id} to stop being active...'
           sleep 3
       done
     EOF
