@@ -17,11 +17,21 @@ provider "digitalocean" {
 resource "null_resource" "local-tests" {
   provisioner "local-exec" {
     command = <<EOF
+      if [ $(which jq | wc -l) -lt 1 ]; then
+        echo 'jq tool not installed on this system'
+        exit 1
+      fi
+      if [ $(which curl | wc -l) -lt 1 ]; then
+        echo 'curl tool not installed on this system'
+        exit 1
+      else
         curl -f -s -X GET -H 'Content-Type: application/json' -H 'Authorization: Bearer ${var.digitalocean_token}' \
           'https://api.digitalocean.com/v2/regions' > /dev/null
-        if [ $? -gt 0 ]; then
-          exit 1
-        fi
+      fi
+      if [ $? -gt 0 ]; then
+        echo 'problem using curl to call the digitalocean api'
+        exit 1
+      fi
     EOF
   }
 }
@@ -261,9 +271,11 @@ resource "null_resource" "droplet-snapshot-action-status" {
   provisioner "local-exec" {
     command = <<EOF
       echo ""
-      echo "!!!!"
-      echo "OPNsense DigitalOcean image build status: " $(jq -r '.action.status' /tmp/opnsense-digitalocean-${random_string.build-id.result}-snapshot-action.json)
-      echo "!!!!"
+      echo "!!!! "
+      echo "!!!! OPNsense DigitalOcean image build status: " $(jq -r '.action.status' /tmp/opnsense-digitalocean-${random_string.build-id.result}-snapshot-action.json)
+      echo "!!!! "
+      echo "!!!! Remember to terraform destroy these resources once image is complete"
+      echo "!!!! "
       echo ""
     EOF
   }
