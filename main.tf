@@ -211,7 +211,7 @@ resource "null_resource" "instance-wait-poweroff" {
 # ===
 resource "null_resource" "image-name" {
   triggers = {
-    string = "OPNsense ${var.opnsense_release} - ${timestamp()}"
+    string = "OPNsense ${var.opnsense_release} - ${replace(replace(replace(replace(timestamp(), ":", ""),"-",""),"Z",""),"T","Z")}"
   }
 }
 
