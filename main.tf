@@ -215,7 +215,15 @@ resource "null_resource" "image-name" {
   }
 }
 
-# create the action data for the snaphot we are going to take
+# create a filename for the action output - using a null_resource approach allows us to use a variable in the name here
+# ===
+resource "null_resource" "output-filename" {
+  triggers = {
+    string = "/tmp/opnsense-${random_string.build-id.result}-image-action.json"
+  }
+}
+
+# create the Digital Ocean action data for the snaphot we are going to take
 # ===
 resource "null_resource" "action-data" {
   triggers = {
@@ -228,7 +236,7 @@ resource "null_resource" "action-data" {
   }
 }
 
-# take a image of this Droplet via the DigitalOcean API
+# take a image of this Droplet via the DigitalOcean API so that it occurs outside Terraform and will not later be destroyed
 # ===
 resource "null_resource" "instance-snapshot-action" {
   count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_image}"
@@ -239,7 +247,7 @@ resource "null_resource" "instance-snapshot-action" {
       curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer ${var.digitalocean_token}' \
         -d '${null_resource.action-data.triggers.json}' \
         'https://api.digitalocean.com/v2/droplets/${digitalocean_droplet.build-instance.id}/actions' \
-        > /tmp/opnsense-digitalocean-${random_string.build-id.result}-snapshot-action.json
+          > ${null_resource.output-filename.triggers.string}
     EOF
   }
 
@@ -249,7 +257,7 @@ resource "null_resource" "instance-snapshot-action" {
 # destroy this droplet to prevent it from running up charges since DigitalOcean Droplets cost money even when powered
 # off - note that the Droplet does not disappear from the DigitalOCean management interface until the snapshot image
 # process has completed its run
-resource "null_resource" "droplet-destroy" {
+resource "null_resource" "instance-destroy" {
   count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_image * var.do_self_destruct}"
 
   provisioner "local-exec" {
@@ -265,16 +273,20 @@ resource "null_resource" "droplet-destroy" {
 
 # force some Terraform log output so it is a little easier to immediately observe the final status
 # ===
-resource "null_resource" "droplet-snapshot-action-status" {
+resource "null_resource" "action-status" {
   count = "${var.do_opnsense_install * var.do_cleanup_shutdown * var.do_image}"
 
   provisioner "local-exec" {
     command = <<EOF
+      echo $(jq -r ".action.status" "${null_resource.output-filename.triggers.string}") > "${null_resource.output-filename.triggers.string}.id"
       echo ""
       echo "!!!! "
-      echo "!!!! OPNsense DigitalOcean image build status: " $(jq -r '.action.status' /tmp/opnsense-digitalocean-${random_string.build-id.result}-snapshot-action.json)
+      echo "!!!! build_id: ${random_string.build-id.result}"
+      echo "!!!! image_id: ${file(null_resource.output-filename.triggers.string)}"
+      echo "!!!! image_name: ${null_resource.image-name.triggers.string}"
+      echo "!!!! image_action_outfile: ${null_resource.output-filename.triggers.string}"
       echo "!!!! "
-      echo "!!!! Remember to terraform destroy these resources once image is complete"
+      echo "!!!! Remember to terraform destroy resources once image action is complete"
       echo "!!!! "
       echo ""
     EOF
