@@ -126,12 +126,10 @@ opnsense_config_interface()
 
     # delete - only if xpath exists
     elif [ $method = "delete" ]; then
-        if [ ! -z "$(xml sel --template --copy-of "$xpath" "$configfile")" ]; then
-            xml ed -P -d "$xpath" "$configfile" > "$tempfile"
-            if [ -z "$(xml sel --template --value-of "$xpath" "$tempfile")" ]; then
-                mv "$tempfile" "$configfile"
-                return 0
-            fi
+        xml ed -P -d "$xpath" "$configfile" > "$tempfile"
+        if [ -z "$(xml sel --template --value-of "$xpath" "$tempfile")" ]; then
+            mv "$tempfile" "$configfile"
+            return 0
         fi
 
     # upsert - update if xpath exists, insert-create if xpath not exist
@@ -340,6 +338,11 @@ opnsense_syshook()
 
         fi
 
+        if [ -z "$public_interface_mac" ]; then
+            xpath="//interfaces/public/enable"
+            opnsense_config_interface delete "$xpath"                           || echo "OPNsense Syshook: failed to delete $xpath"
+        fi
+
         # private_ip4 address data if $private_ip4_addr is available
         echo "OPNsense Syshook: IPv4 to $private_interface"
         if [ ! -z "$private_ip4_addr" ] && [ "$private_ip4_addr" != "null" ]; then
@@ -388,14 +391,25 @@ opnsense_syshook()
 
         fi
 
+        if [ -z "$private_interface_mac" ]; then
+            xpath="//interfaces/private/enable"
+            opnsense_config_interface delete "$xpath"                           || echo "OPNsense Syshook: failed to delete $xpath"
+        fi
+
         # =====================================================================
 
         echo "OPNsense Syshook: reloading full configuration"
         /usr/local/etc/rc.reload_all
-        /usr/local/opnsense/service/configd_ctl.py interface newip $public_interface
-        /usr/local/opnsense/service/configd_ctl.py interface newipv6 $public_interface
-        /usr/local/opnsense/service/configd_ctl.py interface newip $private_interface
-        /usr/local/opnsense/service/configd_ctl.py interface newipv6 $private_interface
+
+        if [ ! -z "$public_interface_mac" ]; then
+            /usr/local/opnsense/service/configd_ctl.py interface newip "$public_interface"
+            /usr/local/opnsense/service/configd_ctl.py interface newipv6 "$public_interface"
+        fi
+
+        if [ ! -z "$private_interface_mac" ]; then
+            /usr/local/opnsense/service/configd_ctl.py interface newip "$private_interface"
+            /usr/local/opnsense/service/configd_ctl.py interface newipv6 "$private_interface"
+        fi
 
         # =====================================================================
 
