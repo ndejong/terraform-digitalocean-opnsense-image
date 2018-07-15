@@ -1,7 +1,7 @@
-# terraform-digitalocean-opnsense-cloud-image-builder
+# terraform-digitalocean-opnsense-cloud-image
 # ============================================================================
 
-# Copyright (c) 2018 Nicholas de Jong <contact[at]nicholasdejong.com>
+# Copyright (c) 2018 Verb Networks Pty Ltd <contact [at] verbnetworks.com>
 #  - All rights reserved.
 #
 # Apache License v2.0
@@ -215,14 +215,6 @@ resource "null_resource" "image-name" {
   }
 }
 
-# create a filename for the action output - using a null_resource approach allows us to use a variable in the name here
-# ===
-resource "null_resource" "output-filename" {
-  triggers = {
-    string = "/tmp/opnsense-${random_string.build-id.result}-image-action.json"
-  }
-}
-
 # create the Digital Ocean action data for the snaphot we are going to take
 # ===
 resource "null_resource" "action-data" {
@@ -247,7 +239,7 @@ resource "null_resource" "instance-snapshot-action" {
       curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer ${var.digitalocean_token}' \
         -d '${null_resource.action-data.triggers.json}' \
         'https://api.digitalocean.com/v2/droplets/${digitalocean_droplet.build-instance.id}/actions' \
-          > ${null_resource.output-filename.triggers.string}
+          > /tmp/opnsense-${random_string.build-id.result}-image-action.json
     EOF
   }
 
@@ -278,13 +270,11 @@ resource "null_resource" "action-status" {
 
   provisioner "local-exec" {
     command = <<EOF
-      echo $(jq -r ".action.status" "${null_resource.output-filename.triggers.string}") > "${null_resource.output-filename.triggers.string}.id"
       echo ""
       echo "!!!! "
       echo "!!!! build_id: ${random_string.build-id.result}"
-      echo "!!!! image_id: ${file(null_resource.output-filename.triggers.string)}"
       echo "!!!! image_name: ${null_resource.image-name.triggers.string}"
-      echo "!!!! image_action_outfile: ${null_resource.output-filename.triggers.string}"
+      echo "!!!! image_action_outfile: /tmp/opnsense-${random_string.build-id.result}-image-action.json"
       echo "!!!! "
       echo "!!!! Remember to terraform destroy resources once image action is complete"
       echo "!!!! "
