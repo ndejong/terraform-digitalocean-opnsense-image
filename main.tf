@@ -228,6 +228,14 @@ resource "null_resource" "action-data" {
   }
 }
 
+# create the image_action_outfile filename
+# ===
+data "null_data_source" "image-action-outfile" {
+  inputs = {
+    string1 = "/tmp/opnsense-${random_string.build-id.result}-image-action.json"
+  }
+}
+
 # take a image of this Droplet via the DigitalOcean API so that it occurs outside Terraform and will not later be destroyed
 # ===
 resource "null_resource" "instance-snapshot-action" {
@@ -239,7 +247,7 @@ resource "null_resource" "instance-snapshot-action" {
       curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer ${var.digitalocean_token}' \
         -d '${null_resource.action-data.triggers.json}' \
         'https://api.digitalocean.com/v2/droplets/${digitalocean_droplet.build-instance.id}/actions' \
-          > /tmp/opnsense-${random_string.build-id.result}-image-action.json
+          > ${data.null_data_source.image-action-outfile.inputs}
     EOF
   }
 
@@ -274,7 +282,7 @@ resource "null_resource" "action-status" {
       echo "!!!! "
       echo "!!!! build_id: ${random_string.build-id.result}"
       echo "!!!! image_name: ${null_resource.image-name.triggers.string}"
-      echo "!!!! image_action_outfile: /tmp/opnsense-${random_string.build-id.result}-image-action.json"
+      echo "!!!! image_action_outfile: ${data.null_data_source.image-action-outfile.inputs}"
       echo "!!!! "
       echo "!!!! Remember to terraform destroy resources once image action is complete"
       echo "!!!! "

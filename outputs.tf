@@ -33,5 +33,5 @@ output "image_name" {
 
 output "image_action_outfile" {
   description = "The output file from the image action call to the compute provider."
-  value = "/tmp/opnsense-${random_string.build-id.result}-image-action.json"
+  value = "${data.null_data_source.image-action-outfile.inputs}"
 }
