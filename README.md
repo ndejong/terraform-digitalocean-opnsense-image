@@ -88,8 +88,9 @@ process in Terraform.
 
 
 ## History
-This module was originally published at `https://github.com/ndejong/terraform-digitalocean-opnsense-cloud-image-builder` 
-and was subsequently moved which required it to be removed and re-added to the Terraform Module repository.
+This module was originally published via `github.com/ndejong/terraform-digitalocean-opnsense-cloud-image-builder` and was 
+subsequently moved which required it to be removed and re-added within the Terraform Module repository.
+
 
 ****
 
