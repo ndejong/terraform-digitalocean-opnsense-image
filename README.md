@@ -107,6 +107,11 @@ subsequently moved which required it to be removed and re-added within the Terra
 NB: as at 2018-07-17 OPNSense 18.7 has not yet been confirmed to correctly build, this will be resolved once OPNSense
 officially announce this build.
 
+## Compute Providers Supported
+ * [Amazon Web Services](https://github.com/verbnetworks/terraform-digitalocean-aws-image)
+ * [Digital Ocean](https://github.com/verbnetworks/terraform-digitalocean-opnsense-image)
+
+
 ****
 
 
@@ -132,10 +137,6 @@ The initial root password for OPNsense once the image is built.
 The hostname applied to this digitalocean-droplet within the image build process only.
 * default = "opnsense-cloud-image-builder"
 
-### self_destruct
-Cause the Droplet used to create the snapshot image to self destruct itself once complete.
-* default = 1
-
 ### digitalocean_image
 The DigitalOcean image to use as the base for this digitalocean-droplet.
 * default = "freebsd-11-1-x64"
@@ -143,14 +144,6 @@ The DigitalOcean image to use as the base for this digitalocean-droplet.
 ### digitalocean_size
 The size to use for this digitalocean-droplet.
 * default = "s-1vcpu-1gb"
-
-### digitalocean_backups
-Enable/disable backup functionality on this digitalocean-droplet - untested with OPNsense
-* default = false
-
-### digitalocean_monitoring
-Enable/disable monitoring functionality on this digitalocean-droplet - untested with OPNsense
-* default = false
 
 ### digitalocean_ipv6
 Enable/disable getting a public IPv6 on this digitalocean-droplet.
@@ -160,17 +153,43 @@ Enable/disable getting a public IPv6 on this digitalocean-droplet.
 Enable/disable private-networking functionality on this digitalocean-droplet.
 * default = true
 
+### do_opnsense_install
+Cause OPNsense to be installed once the instance is reachable.
+ - default = 1
+
+### do_cleanup_shutdown
+Cause the system to perform cleanup operations and then shutdown.
+ - default = 1
+
+### do_image
+Cause a Digital Ocean Droplet image to be taken of the Droplet while powered off.
+ - default = 1
+
+### do_self_destruct
+Cause the Droplet that was used to create the snapshot image to delete itself itself once the image is done.
+ - default = 1
+
 
 ## Outputs
 
+
+### provider
+The compute provider name.
+
 ### region
-The DigitalOcean region-slug this digitalocean-droplet is running in.
+The compute provider region identifier.
+
+### build_id
+The build identifier used to generate this image.
 
 ### image_name
-The image name used for this Droplet image.
+The image name given to this volume.
 
-### action_status
-The Droplet image action response data received from the DigitalOcean API.
+### image_action_outfile
+The output file from the image action call to the compute provider.
+
+
+****
 
 
 ## Authors
