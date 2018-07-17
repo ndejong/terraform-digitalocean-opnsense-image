@@ -5,12 +5,17 @@ instance within Digital Ocean.
  * [OPNsense](https://www.opnsense.org/)
  * [Digital Ocean](https://www.digitalocean.com/)
 
-Of particular note is the support for the Digital Ocean (OpenStack based) approach to providing Droplets their seed 
-data, including public-IPv4, public-IPv6, private-IPv4, root-sshkey and user-data which is all be parsed and injected 
-into the OPNsense `/conf/config.xml` file at Droplet boot.  This allows the resulting OPNsense image to be used in 
-Terraform devops automation situations.
+This module provides an boot-time syshook for OPNsense that collects input parameters from the Digital Ocean (Open 
+Stack based) meta-data and applies them to the OPNsense `config.xml` file at boot.  Config attributes that are
+managed this way include:-
+ - root user sshkey
+ - Public and Private network interface cards
+ - IPv4 address, subnet, gateway, dns
+ - IPv6 address, subnet, gateway 
 
-Users of the resulting OPNsense can additionally inject standard `user-data` scripts at initial instance boot.
+This allows the resulting OPNsense Droplet Image to be used in regular Terraform devops automation situations.  Additionally, 
+users of the resulting OPNsense instance can inject `user-data` scripts at initial instance boot, however the system
+does not include cloudinit, so `user-data` scripts need to be contained `/bin/sh` scripts. 
 
 
 ## Usage
@@ -26,7 +31,7 @@ and TCP443 (HTTPS).
 ```hcl
 variable "do_token" {}
 
-module "opnsense-cloud-image-builder" {
+module "opnsense-image" {
   source  = "verbnetworks/opnsense-image/digitalocean"
 
   opnsense_release = "18.1"
@@ -42,8 +47,11 @@ module "opnsense-cloud-image-builder" {
   do_self_destruct = 1
 }
 
-output "image_name" { value = "${module.opnsense-cloud-image-builder.image_name}"}
-output "action_status" { value = "${module.opnsense-cloud-image-builder.action_status}"}
+output "provider" { value = "${module.opnsense-image.provider}"}
+output "region" { value = "${module.opnsense-image.region}"}
+output "build_id" { value = "${module.opnsense-image.build_id}"}
+output "image_name" { value = "${module.opnsense-image.image_name}"}
+output "image_action_outfile" { value = "${module.opnsense-image.image_action_outfile}"}
 ```
 
 After the build process completes you should observe among the final Terraform log lines the following, thus indicating 
@@ -99,10 +107,10 @@ subsequently moved which required it to be removed and re-added within the Terra
 
 
 ## Builds Confirmed
- * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.10** (@ 2018-07-04T15:39:47Z)
- * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.11** (@ 2018-06-30T15:11:37Z)
- * (v0.3) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.11** (@ 2018-07-06T17:31:52Z)
- * (v0.3) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.12** (@ 2018-07-17T09:09:00Z)
+ * (v0.2.0) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.10** (@ 2018-07-04T15:39:47Z)
+ * (v0.2.0) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.11** (@ 2018-06-30T15:11:37Z)
+ * (v0.3.0) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.11** (@ 2018-07-06T17:31:52Z)
+ * (v0.3.0) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.12** (@ 2018-07-17T09:09:00Z)
 
 NB: as at 2018-07-17 OPNSense 18.7 has not yet been confirmed to correctly build, this will be resolved once OPNSense
 officially announce this build.
@@ -135,7 +143,7 @@ The initial root password for OPNsense once the image is built.
 
 ### hostname
 The hostname applied to this digitalocean-droplet within the image build process only.
-* default = "opnsense-cloud-image-builder"
+* default = "opnsense-image"
 
 ### digitalocean_image
 The DigitalOcean image to use as the base for this digitalocean-droplet.
