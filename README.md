@@ -24,12 +24,12 @@ of this module will result in a Digital Ocean Droplet image while the Droplet us
 will self destruct.
 
 The example below shows an example setup - note that the **root_passwd** variable is optional and by default will
-use the same default password that OPNsense uses, that is "opnsense" - be smart, change this as your OPNsense instance 
-will be **publicly** accessible to begin with unless you take other measures to prevent inbound access to TCP22 (SSH) 
-and TCP443 (HTTPS).
+use the same default password that OPNsense uses, that is "opnsense" - be smart, change this because your OPNsense 
+instance will be **publicly** accessible to begin with unless you take other measures to prevent inbound access to 
+TCP22 (SSH) and TCP443 (HTTPS).
 
 ```hcl
-variable "do_token" {}
+variable "do_token" {}    # NB: set via env value, TF_VAR_do_token
 
 module "opnsense-image" {
   source  = "verbnetworks/opnsense-image/digitalocean"
@@ -84,10 +84,10 @@ addresses that can connect to your OPNsense control interfaces.
 ## Notes and Observations
  * The image "build" process leverages the OPNsense provided `opnsense-bootstrap.sh` tool to "convert" a FreeBSD 
    Droplet into an OPNsense one, check it out here - [https://github.com/opnsense/update](https://github.com/opnsense/update)
- * Builds generally take around 10 minutes when using a small-sized Digital Ocean Droplet size, you will see a lot of 
-   Terraform output as the build process continues.
- * Builds can fail for many reasons, external packages may not download, kernel-panics have been observed, you do need
-   to keep an eye on the Terraform logging output to make sure nothing obvious is going wrong. 
+ * Builds generally take around 10 minutes when using a small-sized Digital Ocean Droplet size.
+ * You will see a **lot** of Terraform log output as the build process continues, keep in mind that builds can fail for 
+   many surprising reasons, external packages may not download and kernel-panics have been observed, so it is worth
+   keeping an eye on the Terraform logging output to make sure nothing really obvious is going wrong. 
  * The Digital Ocean API can act mysteriously at times,  several times it has been observed that the final Droplet
    image process silents fails to register the new Droplet snapshot, the resolution seems to be just `destroying`
    and going through the process again without changing anything.
