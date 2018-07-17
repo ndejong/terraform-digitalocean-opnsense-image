@@ -46,6 +46,18 @@ output "image_name" { value = "${module.opnsense-cloud-image-builder.image_name}
 output "action_status" { value = "${module.opnsense-cloud-image-builder.action_status}"}
 ```
 
+After the build process completes you should observe among the final Terraform log lines the following, thus indicating 
+the build process is complete and the image is taking place on the Digital Ocean backend.
+```text
+action-status (local-exec): !!!!
+action-status (local-exec): !!!! build_id: YDYAKA
+action-status (local-exec): !!!! image_name: OPNsense 18.1 - 20180717Z102528
+action-status (local-exec): !!!! image_action_outfile: /tmp/opnsense-YDYAKA-image-action.json
+action-status (local-exec): !!!!
+action-status (local-exec): !!!! Remember to terraform destroy resources once image action is complete
+action-status (local-exec): !!!!
+```
+
 The user should perform a `terraform destroy` once complete to remove the resources that have allocated in the local 
 `tfstate` - they can all safely be destroyed, the new Droplet image will not be removed in this destroy action because
 the action to create the image is performed as a `local-exec` call to `curl` thus preventing it from being a Terraform
@@ -75,12 +87,6 @@ addresses that can connect to your OPNsense control interfaces.
    time to come to roll another Droplet based OPNsense image.
 
 
-## Builds Tested
- * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.10** (@ 2018-07-04T15:39:47Z)
- * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.11** (@ 2018-06-30T15:11:37Z)
- * (v0.3) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.11** (@ 2018-07-06T17:31:52Z)
-
-
 ## What about Packer?
 Packer, also produced by Hashicorp is an awesome tool, but requires learning yet another tool-chain. Since the resulting 
 Digital Ocean images are targeted at DevOps people that use Terraform, it just felt more natural to do the whole build
@@ -92,9 +98,22 @@ This module was originally published via `github.com/ndejong/terraform-digitaloc
 subsequently moved which required it to be removed and re-added within the Terraform Module repository.
 
 
+## Builds Confirmed
+ * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.10** (@ 2018-07-04T15:39:47Z)
+ * (v0.2) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.11** (@ 2018-06-30T15:11:37Z)
+ * (v0.3) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.11** (@ 2018-07-06T17:31:52Z)
+ * (v0.3) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.12** (@ 2018-07-17T09:09:00Z)
+
+NB: as at 2018-07-17 OPNSense 18.7 has not yet been confirmed to correctly build, this will be resolved once OPNSense
+officially announce this build.
+
 ****
 
+
 ## Input Variables - Required
+
+### opnsense_release
+The OPNsense release to target for this image build
 
 ### digitalocean_region
 The DigitalOcean region-slug to start this digitalocean-droplet within (nyc1, sgp1, lon1, nyc3, ams3, fra1, tor1, sfo2, blr1)
@@ -102,16 +121,12 @@ The DigitalOcean region-slug to start this digitalocean-droplet within (nyc1, sg
 ### digitalocean_token
 Your DigitalOcean API token used to issue cURL API calls directly to DigitalOcean to create the required image
 
-### opnsense_release
-The OPNsense release to target for this image build
-
 
 ## Input Variables - Optional
 
 ### root_passwd
 The initial root password for OPNsense once the image is built.
 * default = "opnsense"
-
 
 ### hostname
 The hostname applied to this digitalocean-droplet within the image build process only.

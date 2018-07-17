@@ -207,33 +207,18 @@ resource "null_resource" "instance-wait-poweroff" {
   depends_on = [ "null_resource.cleanup-shutdown-action" ]
 }
 
-# create a name for the instance - using a null_resource approach allows us to use a variable in the name here
+# establish local var values
 # ===
-resource "null_resource" "image-name" {
-  triggers = {
-    string = "OPNsense ${var.opnsense_release} - ${replace(replace(replace(replace(timestamp(), ":", ""),"-",""),"Z",""),"T","Z")}"
-  }
-}
-
-# create the Digital Ocean action data for the snaphot we are going to take
-# ===
-resource "null_resource" "action-data" {
-  triggers = {
-    json = <<EOF
+locals {
+  build_id = "${random_string.build-id.result}"
+  image_name = "OPNsense ${var.opnsense_release} - ${replace(replace(replace(replace(timestamp(), ":", ""),"-",""),"Z",""),"T","Z")}"
+  image_action_data = <<EOF
       {
         "type": "snapshot",
-        "name": "${null_resource.image-name.triggers.string}"
+        "name": "${local.image_name}"
       }
-    EOF
-  }
-}
-
-# create the image_action_outfile filename
-# ===
-data "null_data_source" "image-action-outfile" {
-  inputs = {
-    string1 = "/tmp/opnsense-${random_string.build-id.result}-image-action.json"
-  }
+  EOF
+  image_action_outfile = "/tmp/opnsense-${local.build_id}-image-action.json"
 }
 
 # take a image of this Droplet via the DigitalOcean API so that it occurs outside Terraform and will not later be destroyed
@@ -245,9 +230,9 @@ resource "null_resource" "instance-snapshot-action" {
     command = <<EOF
       sleep 5
       curl -s -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer ${var.digitalocean_token}' \
-        -d '${null_resource.action-data.triggers.json}' \
+        -d '${local.image_action_data}' \
         'https://api.digitalocean.com/v2/droplets/${digitalocean_droplet.build-instance.id}/actions' \
-          > ${data.null_data_source.image-action-outfile.inputs}
+          > ${local.image_action_outfile}
     EOF
   }
 
@@ -280,9 +265,9 @@ resource "null_resource" "action-status" {
     command = <<EOF
       echo ""
       echo "!!!! "
-      echo "!!!! build_id: ${random_string.build-id.result}"
-      echo "!!!! image_name: ${null_resource.image-name.triggers.string}"
-      echo "!!!! image_action_outfile: ${data.null_data_source.image-action-outfile.inputs}"
+      echo "!!!! build_id: ${local.build_id}"
+      echo "!!!! image_name: ${local.image_name}"
+      echo "!!!! image_action_outfile: ${local.image_action_outfile}"
       echo "!!!! "
       echo "!!!! Remember to terraform destroy resources once image action is complete"
       echo "!!!! "
