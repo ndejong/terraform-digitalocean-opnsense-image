@@ -115,6 +115,7 @@ subsequently moved which required it to be removed and re-added within the Terra
 NB: as at 2018-07-17 OPNSense 18.7 has not yet been confirmed to correctly build, this will be resolved once OPNSense
 officially announce this build.
 
+
 ## Compute Providers Supported
  * [Amazon Web Services](https://github.com/verbnetworks/terraform-digitalocean-aws-image)
  * [Digital Ocean](https://github.com/verbnetworks/terraform-digitalocean-opnsense-image)
@@ -179,7 +180,6 @@ Cause the Droplet that was used to create the snapshot image to delete itself it
 
 
 ## Outputs
-
 
 ### provider
 The compute provider name.
