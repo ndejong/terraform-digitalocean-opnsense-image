@@ -29,7 +29,7 @@ instance will be **publicly** accessible to begin with unless you take other mea
 TCP22 (SSH) and TCP443 (HTTPS).
 
 ```hcl
-variable "do_token" {}    # NB: set via env value, TF_VAR_do_token
+variable "do_token" {}    # set via environment value `TF_VAR_do_token`
 
 module "opnsense-image" {
   source  = "verbnetworks/opnsense-image/digitalocean"

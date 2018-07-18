@@ -8,6 +8,7 @@
 #  - http://www.apache.org/licenses/LICENSE-2.0
 
 # establish the digitalocean provider
+# ===
 provider "digitalocean" {
   token = "${var.digitalocean_token}"
 }
