@@ -34,12 +34,11 @@ variable "do_token" {}    # set via environment value `TF_VAR_do_token`
 module "opnsense-image" {
   source  = "verbnetworks/opnsense-image/digitalocean"
 
-  opnsense_release = "18.1"
+  opnsense_release = "18.7"
   root_passwd = "honeyPot..."
 
   digitalocean_region = "sgp1"
   digitalocean_token = "${var.do_token}"
-
 
   do_opnsense_install = 1
   do_cleanup_shutdown = 1
@@ -71,6 +70,10 @@ The user should perform a `terraform destroy` once complete to remove the resour
 the action to create the image is performed as a `local-exec` call to `curl` thus preventing it from being a Terraform
 resource.
 
+## Use your new Droplet Image
+You are now able to start a new Digital Ocean Droplet using the image just created by selecting the image from
+the "Snapshots" tab under the "Choose an image" heading when starting a new Droplet through the Digital Ocean web-
+console.
 
 ## Warning!
 The default rules used in this arrangement differ from the default OPNsense rules in that they **allow** access to the 
@@ -111,9 +114,8 @@ subsequently moved which required it to be removed and re-added within the Terra
  * (v0.2.0) digitalocean-slug: **freebsd-11-1-x64** > **OPNsense 18.1.11** (@ 2018-06-30T15:11:37Z)
  * (v0.3.0) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.11** (@ 2018-07-06T17:31:52Z)
  * (v0.3.0) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.12** (@ 2018-07-17T09:09:00Z)
-
-NB: as at 2018-07-17 OPNSense 18.7 has not yet been confirmed to correctly build, this will be resolved once OPNSense
-officially announce this build.
+ * (v0.3.1) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.1.13** (@ 2018-08-05T12:41:00Z)
+ * (v0.3.1) digitalocean-slug: **freebsd-11-2-x64** > **OPNsense 18.7.0** (@ 2018-08-05T14:44:41Z)
 
 
 ## Compute Providers Supported
